@@ -1,1 +1,8 @@
+.fillMargin {
+    margin: 10px 20px 10px 20px;
+    text-align: right;
+}
 
+.btnMargin {
+    margin: 0px 0px 0px 5px;
+}
