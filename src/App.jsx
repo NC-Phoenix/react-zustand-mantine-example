@@ -10,14 +10,14 @@ const url_m = "http://localhost:8080/products";
 const url_s = "http://localhost:8080/product/";
 const useStore = create(set => ({
   Datas: {},
+  // function เอาข้อมูลที่ได้ไปเก็บไว้ในตัวแปร Datas
   addData: (data) => {
     set(() => ({ 
       Datas: data 
     }))
-    console.log(data);
   },
+  // function เอาข้อมูลที่รับมาไปเก็บไว้ใน Database
   addDataToDb: (data) => {
-    
     delete data["id"];
     const json = JSON.stringify(data);
     console.log(json);
@@ -34,6 +34,7 @@ const useStore = create(set => ({
         }));
       });
   },
+  // function แก้ไขข้อมูลเดิมใน Database
   editDataInDb: (data) => {
     const url = url_s + data.id;
     const json = JSON.stringify(data);
@@ -55,6 +56,7 @@ const useStore = create(set => ({
       });
     
   },
+  // function ลบข้อมูลเดิมใน Database
   delDataFromDb: (id) => {
     const url = url_s + id;
     const requestOptions = {
@@ -70,6 +72,7 @@ const useStore = create(set => ({
   }
 }));
 
+// ดึงข้อมูลจาก url ที่กำหนด
 const useFetch = (url) => {
   const [data, setData] = useState(null);
 
@@ -85,21 +88,29 @@ const useFetch = (url) => {
 };
 
 function App(){
+  // เมื่อโหลดหน้าเว็บครั้งแรก ให้ดึงข้อมูลจาก url แล้วเก็บไว้ในตัวแปร data
   const data = useFetch(url_m);
+
+  // useStore ไว้สำหรับเข้าถึงข้อมูลและ function
   const datas = useStore((state) => state.Datas);
   const addData = useStore((state) => state.addData);
   const addDataToDb = useStore((state) => state.addDataToDb);
   const editDataInDb = useStore((state) => state.editDataInDb);
   const delDataFromDb = useStore((state) => state.delDataFromDb);
+
+  // useRef ไว้สำหรับอ้างอิงและเข้าถึงข้อมูลจาก input
   const inputRefId = useRef();
   const inputRefName = useRef();
   const inputRefBrand = useRef();
   const inputRefPrice = useRef();
 
+  // กรณีเพิ่มข้อมูลใหม่ ให้ id เป็น 0 (ไม่ต้องใช้ id)
+  // กรณีแก้ไขข้อมูลเดิม ให้ใช้ id จากช่อง column id ของ row ที่กดปุ่ม
+  // เมื่อกดปุ่มบันทึก กรณีที่ id เป็น 0 จะเป็นการเพิ่มข้อมูลใหม่ ถ้ามี id จะเป็นการแก้ไขข้อมูลเดิม
   const addNewData = () => {
     const selId = parseInt(inputRefId.current.value);
     const newData = {
-      id: (selId ? selId : datas.length + 1),
+      id: (selId ? selId : 0),
       name: inputRefName.current.value,
       brand: inputRefBrand.current.value,
       price: parseFloat(inputRefPrice.current.value)
@@ -111,6 +122,7 @@ function App(){
     inputRefPrice.current.value = "";
   };
 
+  // เมื่อกดปุ่มแก้ไข ให้เอาข้อมูลจาก row ที่กดปุ่ม มาใส่ใน input
   const editData = (data) => {
     inputRefId.current.value = data.id;
     inputRefName.current.value = data.name;
@@ -118,16 +130,19 @@ function App(){
     inputRefPrice.current.value = data.price.toFixed(2);
   };
 
+  // เมื่อกดลบข้อมูล ให้ลบข้อมูลโดยใช้ id จากช่อง column id ของ row ที่กดปุ่ม
   const delData = (id) => {
     delDataFromDb(id);
   };
 
+  // เมื่อโหลดหน้าเว็บครั้งแรก ให้เอาข้อมูลไปเก็บไว้ในตัวแปร Datas เลย
   useEffect(() => {
     if(data){
       addData(data);
     }
   }, [data, addData])
 
+  // เอาข้อมูลมาใส่ลงใน row
   const rows = Array.from(datas).map((data) => (
     <Table.Tr key={data.id}>
       <Table.Td>{data.id}</Table.Td>
@@ -141,6 +156,7 @@ function App(){
     </Table.Tr>
   ));
 
+  // row ที่เอาไว้เพิ่มข้อมูล
   const newRow = (
     <Table.Tr key={datas.length+1}>
       <Table.Td><TextInput size="xs" ref={inputRefId} disabled /></Table.Td>
@@ -153,6 +169,7 @@ function App(){
     </Table.Tr>
   );
 
+  // นำ table row ไปรวมกับ table head แล้วนำไปแสดงผล
   return (
     <>
       <MantineProvider>
